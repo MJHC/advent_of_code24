@@ -11,6 +11,5 @@ with open(os.path.join(DIR, "input.txt"), "r") as f:
     part_1 = sum(abs(x - y) for (x, y) in zip(xs, ys))
     part_2 = sum(x * len([y for y in ys if y == x]) for x in xs)
     
-
 print(part_1)
 print(part_2)
