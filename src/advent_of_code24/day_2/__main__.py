@@ -6,7 +6,7 @@ DIR = os.path.dirname(__file__)
 
 
 with open(os.path.join(DIR, "input.txt"), "r") as f:
-    data = [list(map(lambda y: int(y), x.split(" "))) for x in f.read().splitlines()]
+    data = [list(map(lambda y: int(y), x.split())) for x in f.read().splitlines()]
 
     check = lambda f, xs: [f(x, xs[i + 1]) if i + 1 < len(xs) else f(xs[i - 1], x) for i, x in enumerate(xs)]
     

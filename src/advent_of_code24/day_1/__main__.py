@@ -3,7 +3,7 @@ import os
 DIR = os.path.dirname(__file__)
 
 with open(os.path.join(DIR, "input.txt"), "r") as f:
-    data = f.read().replace("\n", "   ").split("   ")
+    data = f.read().replace("\n", " ").split()
     extract = lambda d, j: [int(x) for i, x in enumerate(d) if i % 2 == j]
     
     xs = sorted(extract(data, 0))
