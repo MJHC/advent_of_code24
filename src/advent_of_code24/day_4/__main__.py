@@ -1,38 +1,31 @@
 import os
-from pprint import pprint
 DIR = os.path.dirname(__file__)
 
 with open(os.path.join(DIR, "input.txt"), "r") as f:
-    data = f.read().splitlines()
-    
-    indices = lambda xss, y: [(i, j) for i, xs in enumerate(xss) for j, x in enumerate(xs) if x == y]
-    
-    up = lambda xss, i, j: xss[i][j] + xss[i - 1][j] + xss[i - 2][j] + xss[i - 3][j] if 0 <= i - 3 < len(xss) and j < len(xss[i - 3]) else ""
-    left = lambda xss, i, j: xss[i][j] + xss[i][j - 1] + xss[i][j - 2] + xss[i][j - 3] if i < len(xss) and 0 <= j - 3 < len(xss[i]) else ""
-    left_top = lambda xss, i, j: xss[i][j] + xss[i - 1][j - 1] + xss[i - 2][j - 2] + xss[i - 3][j - 3] if 0 <= i - 3 < len(xss) and 0 <= j - 3 < len(xss[i - 3]) else ""
-    right_top = lambda xss, i, j: xss[i][j] + xss[i - 1][j + 1] + xss[i - 2][j + 2] + xss[i - 3][j + 3] if 0 <= i - 3 < len(xss) and j + 3 < len(xss[i - 3]) else ""
-    
-    right_bot = lambda xss, i, j: xss[i][j] + xss[i + 1][j + 1] + xss[i + 2][j + 2] + xss[i + 3][j + 3] if i + 3 < len(xss) and j + 3 < len(xss[i + 3]) else ""
-    left_bot = lambda xss, i, j: xss[i][j] + xss[i + 1][j - 1] + xss[i + 2][j - 2] + xss[i + 3][j - 3] if i + 3 < len(xss) and 0 <= j - 3 < len(xss[i - 3]) else ""
-    right = lambda xss, i, j: xss[i][j] + xss[i][j + 1] + xss[i][j + 2] + xss[i][j + 3] if i < len(xss) and j + 3 < len(xss[i]) else ""
-    down = lambda xss, i, j: xss[i][j] + xss[i + 1][j] + xss[i + 2][j] + xss[i + 3][j] if i + 3 < len(xss) and j < len(xss[i + 3]) else ""
+    grid = f.read().splitlines()
 
-    scan_xmas = lambda xss, i, j: [(f(xss, i, j), (i,j)) for f in [up, left, left_top, right_top, right_bot, left_bot, right, down]]
-    
-    top_mas = lambda xss, i, j: xss[i - 1][j - 1] + "." + xss[i - 1][j + 1] if 0 <= j - 1 and 0 <= i - 1 and i + 1 < len(xss) and j + 1 < len(xss[i - 1]) else ""
-    bot_mas = lambda xss, i, j: xss[i + 1][j - 1] + "." + xss[i + 1][j+1] if 0 <= j - 1 and i + 1 < len(xss) and j + 1 < len(xss[i + 1]) else ""
-    x_mas = lambda xss, i, j: [(top_mas(xss, i, j), bot_mas(xss, i, j))]
-    
     flatten = lambda xss: [x for xs in xss for x in xs]
-    check = lambda xss, f, g: flatten(f(xss, i, j) for i, j in g(xss))
+    locate = lambda g, s: [(i, j) for i, gs in enumerate(g) for j, x in enumerate(gs) if x == s]
+    walk = lambda g, p, v, m: g[p[0]][p[1]] + walk(g, (p[0] + v[0], p[1] + v[1]), v, m - 1) if 0 <= p[0] < len(g) and 0 <= p[1] < len(g[p[0]]) and m > 0 else ""
 
-    count_xmas = lambda xss: len(list(filter(lambda x: x[0] == "XMAS", check(xss, scan_xmas, lambda xss: indices(xss, "X")))))
+    north = lambda g, p: walk(g, p, (-1, 0), 4)
+    south = lambda g, p: walk(g, p, (+1, 0), 4)
+    west = lambda g, p: walk(g, p, (0, -1), 4)
+    east = lambda g, p: walk(g, p, (0, +1), 4)
+    northwest = lambda g, p: walk(g, p, (-1, -1), 4)
+    northeast = lambda g, p: walk(g, p, (-1, +1), 4)
+    southwest = lambda g, p: walk(g, p, (+1, -1), 4)
+    southeast = lambda g, p: walk(g, p, (+1, +1), 4)
+
+    explore = lambda g, p: [f(g, p) for f in [north, south, west, east, northwest, northeast, southwest, southeast]]
+    explore_from = lambda g, s: [explore(g, p) for p in locate(g, s)]
+    explore_xmas = lambda g: list(filter(lambda x: x == "XMAS", flatten(explore_from(g, "X"))))
+
+    mas_crop = lambda xs: [y[1] if 1 < len(y) else y[0] for y in xs]
+    mas_pack = lambda xs: xs[4] + xs[5] + xs[6] + xs[7]
+    mas_filter = lambda x: x in ["MSMS", "SMSM", "MMSS", "SSMM"]
+    explore_mas = lambda g: list(filter(mas_filter, map(mas_pack, map(mas_crop, explore_from(g, "A")))))
+
+    print(len(explore_xmas(grid)))
+    print(len(explore_mas(grid)))
     
-    check_x_mas = lambda x: "|".join(x) in ["M.S|M.S", "S.M|S.M", "M.M|S.S", "S.S|M.M"]
-    count_x_mas = lambda xss: len(list(filter(check_x_mas, check(xss, x_mas, lambda xss: indices(xss, "A")))))
-    
-    part_1 = count_xmas(data)
-    part_2 = count_x_mas(data)
-    
-    print(part_1)
-    print(part_2)
